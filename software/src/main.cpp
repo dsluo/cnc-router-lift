@@ -2,11 +2,17 @@
 #include <TMCStepper.h>
 #include <FastAccelStepper.h>
 #include "Actuator.h"
+#include <LiquidCrystal_I2C.h>
+#include <ESP32Encoder.h>
 
 #define ENABLE_PIN 14
 #define DIRECTION_PIN 27
 #define STEP_PIN 12
 #define STALL_PIN 13
+
+#define ENCODER_BUTTON 36
+#define ENCODER_A 39
+#define ENCODER_B 34
 
 #define DRIVER_SERIAL Serial2
 #define DRIVER_RESIST 0.11f
@@ -33,14 +39,16 @@ MotionProfile runningPositiveProfie = MotionProfile{
 MotionProfile runningNegativeProfile = {10000, 1000, 100, 250};
 MotionProfile homingProfile = MotionProfile{10000, 1000, 100, 250};
 
-void setup()
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+ESP32Encoder encoder;
+
+void motionSetup()
 {
   pinMode(STEP_PIN, OUTPUT);
   pinMode(DIRECTION_PIN, OUTPUT);
   pinMode(ENABLE_PIN, OUTPUT);
   pinMode(STALL_PIN, INPUT);
 
-  Serial.begin(115200);
   DRIVER_SERIAL.begin(115200);
 
   driver.begin();
@@ -66,6 +74,26 @@ void setup()
   actuator = new Actuator(&driver, stepper, STALL_PIN, STEPS_PER_UNIT_TRAVEL, &runningPositiveProfie, &runningNegativeProfile, &homingProfile, TOTAL_TRAVEL);
 }
 
+void interfaceSetup()
+{
+  lcd.init();
+  lcd.backlight();
+
+  ESP32Encoder::useInternalWeakPullResistors = puType::up;
+  encoder.attachFullQuad(ENCODER_A,ENCODER_B);
+}
+
+void setup()
+{
+  Serial.begin(115200);
+  motionSetup();
+  interfaceSetup();
+}
+
 void loop()
 {
+  // lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(encoder.getCount()/4);
+  Serial.println(encoder.getCount()/4);
 }
