@@ -2,17 +2,11 @@
 #include <TMCStepper.h>
 #include <FastAccelStepper.h>
 #include "Actuator.h"
-#include <LiquidCrystal_I2C.h>
-#include <ESP32Encoder.h>
 
 #define ENABLE_PIN 14
 #define DIRECTION_PIN 27
 #define STEP_PIN 12
 #define STALL_PIN 13
-
-#define ENCODER_BUTTON 36
-#define ENCODER_A 39
-#define ENCODER_B 34
 
 #define DRIVER_SERIAL Serial2
 #define DRIVER_RESIST 0.11f
@@ -47,31 +41,13 @@ Actuator actuator(
     &runningNegativeProfile,
     &homingProfile,
     TOTAL_TRAVEL);
-;
-
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-ESP32Encoder encoder;
-
-void interfaceSetup()
-{
-  lcd.init();
-  lcd.backlight();
-
-  ESP32Encoder::useInternalWeakPullResistors = puType::up;
-  encoder.attachFullQuad(ENCODER_A, ENCODER_B);
-}
 
 void setup()
 {
   Serial.begin(115200);
   actuator.begin();
-  interfaceSetup();
 }
 
 void loop()
 {
-  // lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print(encoder.getCount() / 4);
-  Serial.println(encoder.getCount() / 4);
 }
