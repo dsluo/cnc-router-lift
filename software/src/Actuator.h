@@ -37,7 +37,17 @@ struct MotionProfile
 
 class Actuator
 {
+    HardwareSerial *driverSerial;
+    float driverSenseResistance;
+    uint8_t driverAddress;
     TMC2209Stepper *driver;
+
+    uint16_t rmsCurrent;
+    uint16_t microsteps;
+    uint8_t stepPin;
+    uint8_t directionPin;
+    uint8_t enablePin;
+    FastAccelStepperEngine engine;
     FastAccelStepper *stepper;
 
     int stallPin;
@@ -67,8 +77,14 @@ class Actuator
 
 public:
     Actuator(
-        TMC2209Stepper *driver,
-        FastAccelStepper *stepper,
+        HardwareSerial *driverSerial,
+        float driverSenseResistance,
+        uint8_t driverAddress,
+        uint16_t rmsCurrent,
+        uint16_t microsteps,
+        uint8_t stepPin,
+        uint8_t directionPin,
+        uint8_t enablePin,
         int stallPin,
         uint32_t stepsPerUnitTravel,
         MotionProfile *runningPositiveProfile,

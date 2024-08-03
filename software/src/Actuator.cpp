@@ -1,8 +1,14 @@
 #include "Actuator.h"
 
 Actuator::Actuator(
-    TMC2209Stepper *driver,
-    FastAccelStepper *stepper,
+    HardwareSerial *driverSerial,
+    float driverSenseResistance,
+    uint8_t driverAddress,
+    uint16_t rmsCurrent,
+    uint16_t microsteps,
+    uint8_t stepPin,
+    uint8_t directionPin,
+    uint8_t enablePin,
     int stallPin,
     uint32_t stepsPerUnitTravel,
     MotionProfile *runningPositiveProfile,
@@ -10,8 +16,14 @@ Actuator::Actuator(
     // Direction homingDirection,
     MotionProfile *homingProfile,
     uint32_t totalTravel)
-    : driver(driver),
-      stepper(stepper),
+    : driverSerial(driverSerial),
+      driverSenseResistance(driverSenseResistance),
+      driverAddress(driverAddress),
+      rmsCurrent(rmsCurrent),
+      microsteps(microsteps),
+      stepPin(stepPin),
+      directionPin(directionPin),
+      enablePin(enablePin),
       stallPin(stallPin),
       stepsPerUnitTravel(stepsPerUnitTravel),
       runningPositiveProfile(runningPositiveProfile),
@@ -20,10 +32,42 @@ Actuator::Actuator(
       homingProfile(homingProfile),
       totalTravelSteps(totalTravel / stepsPerUnitTravel)
 {
+    driver = new TMC2209Stepper(driverSerial, driverSenseResistance, driverAddress);
+}
+
+Actuator::~Actuator()
+{
+    delete this->driver;
 }
 
 void Actuator::begin()
 {
+    pinMode(stepPin, OUTPUT);
+    pinMode(directionPin, OUTPUT);
+    pinMode(enablePin, OUTPUT);
+    pinMode(stallPin, INPUT);
+
+    driverSerial->begin(115200);
+    driver->begin();
+    // idk what this does
+    driver->blank_time(24);
+    driver->rms_current(rmsCurrent);
+    driver->microsteps(microsteps);
+    // disable coolstep; interferes with stallguard
+    driver->semin(0);
+    // disable stealthchop by setting threshold above which its enabled to zero.
+    driver->TPWMTHRS(0);
+    // enable UART control
+    driver->pdn_disable(true);
+
+    engine.init();
+    stepper = engine.stepperConnectToPin(stepPin);
+    if (stepper)
+    {
+        stepper->setDirectionPin(directionPin);
+        stepper->setEnablePin(enablePin);
+    }
+
     attachInterruptArg(digitalPinToInterrupt(stallPin), Actuator::setStalled, this, RISING);
 
     xTaskCreatePinnedToCore(
