@@ -49,11 +49,7 @@ class Actuator
     uint8_t stallPin;
     FastAccelStepperEngine engine;
 
-    MotionProfile *runningPositiveProfile;
-    MotionProfile *runningNegativeProfile;
-
     // Direction homingDirection;
-    MotionProfile *homingProfile;
     uint32_t totalTravel;
 
     // =====================================
@@ -74,7 +70,11 @@ class Actuator
 public:
     TMC2209Stepper *driver;
     FastAccelStepper *stepper;
-    
+
+    MotionProfile *runningPositiveProfile;
+    MotionProfile *runningNegativeProfile;
+    MotionProfile *homingProfile;
+
     Actuator(
         HardwareSerial *driverSerial,
         float driverSenseResistance,
