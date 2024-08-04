@@ -40,7 +40,6 @@ class Actuator
     HardwareSerial *driverSerial;
     float driverSenseResistance;
     uint8_t driverAddress;
-    TMC2209Stepper *driver;
 
     uint16_t rmsCurrent;
     uint16_t microsteps;
@@ -48,7 +47,6 @@ class Actuator
     uint8_t directionPin;
     uint8_t enablePin;
     FastAccelStepperEngine engine;
-    FastAccelStepper *stepper;
 
     int stallPin;
     uint32_t stepsPerUnitTravel;
@@ -76,6 +74,9 @@ class Actuator
     void setMotionProfile(MotionProfile *parameters);
 
 public:
+    TMC2209Stepper *driver;
+    FastAccelStepper *stepper;
+    
     Actuator(
         HardwareSerial *driverSerial,
         float driverSenseResistance,
@@ -92,6 +93,7 @@ public:
         // Direction homingDirection,
         MotionProfile *homingProfile,
         uint32_t totalTravel);
+    ~Actuator();
     void begin();
 
     std::optional<int32_t> getMin();
