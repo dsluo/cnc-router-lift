@@ -78,6 +78,12 @@ void WebUI::begin()
   driverVelocityControl = ESPUI.label("TSTEP", ControlColor::Carrot, String(actuator->driver->TSTEP()));
   stallValueControl = ESPUI.label("SG_RESULT", ControlColor::Carrot, String(actuator->driver->SG_RESULT()));
 
+  runningPositiveUI->begin();
+  runningNegativeUI->begin();
+  homingUI->begin();
+
+  ESPUI.begin("Router Lift");
+
   xTaskCreate(
       WebUI::startTask,
       "WebUITask",
