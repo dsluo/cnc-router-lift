@@ -46,9 +46,8 @@ class Actuator
     uint8_t stepPin;
     uint8_t directionPin;
     uint8_t enablePin;
+    uint8_t stallPin;
     FastAccelStepperEngine engine;
-
-    int stallPin;
 
     MotionProfile *runningPositiveProfile;
     MotionProfile *runningNegativeProfile;
@@ -85,7 +84,7 @@ public:
         uint8_t stepPin,
         uint8_t directionPin,
         uint8_t enablePin,
-        int stallPin,
+        uint8_t stallPin,
         MotionProfile *runningPositiveProfile,
         MotionProfile *runningNegativeProfile,
         // Direction homingDirection,

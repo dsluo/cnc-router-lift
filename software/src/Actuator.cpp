@@ -9,7 +9,7 @@ Actuator::Actuator(
     uint8_t stepPin,
     uint8_t directionPin,
     uint8_t enablePin,
-    int stallPin,
+    uint8_t stallPin,
     MotionProfile *runningPositiveProfile,
     MotionProfile *runningNegativeProfile,
     // Direction homingDirection,
