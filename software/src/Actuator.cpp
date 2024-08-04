@@ -10,7 +10,6 @@ Actuator::Actuator(
     uint8_t directionPin,
     uint8_t enablePin,
     int stallPin,
-    uint32_t stepsPerUnitTravel,
     MotionProfile *runningPositiveProfile,
     MotionProfile *runningNegativeProfile,
     // Direction homingDirection,
@@ -25,12 +24,11 @@ Actuator::Actuator(
       directionPin(directionPin),
       enablePin(enablePin),
       stallPin(stallPin),
-      stepsPerUnitTravel(stepsPerUnitTravel),
       runningPositiveProfile(runningPositiveProfile),
       runningNegativeProfile(runningNegativeProfile),
       //   homingDirection(homingDirection),
       homingProfile(homingProfile),
-      totalTravelSteps(totalTravel / stepsPerUnitTravel)
+      totalTravel(totalTravel)
 {
     driver = new TMC2209Stepper(driverSerial, driverSenseResistance, driverAddress);
 }
@@ -97,21 +95,21 @@ std::optional<int32_t> Actuator::getMin()
 {
     if (!homed)
         return {};
-    return minPosStep / stepsPerUnitTravel;
+    return minPos;
 }
 
 std::optional<int32_t> Actuator::getMax()
 {
     if (!homed)
         return {};
-    return maxPosStep / stepsPerUnitTravel;
+    return maxPos;
 }
 
 std::optional<int32_t> Actuator::getCurrentPosition()
 {
     if (!homed)
         return {};
-    return stepper->getCurrentPosition() / stepsPerUnitTravel;
+    return stepper->getCurrentPosition();
 }
 
 bool Actuator::setZero()
@@ -123,19 +121,18 @@ bool Actuator::setCurrentPosition(int32_t position)
 {
     if (!homed)
         return false;
-    int posStep = position * stepsPerUnitTravel;
-    int delta = stepper->getCurrentPosition() - posStep;
-    minPosStep += delta;
-    maxPosStep += delta;
-    stepper->setCurrentPosition(posStep);
-    targetPosStep = posStep;
+    int delta = stepper->getCurrentPosition() - position;
+    minPos += delta;
+    maxPos += delta;
+    stepper->setCurrentPosition(position);
+    targetPos = position;
     return true;
 }
 
 void Actuator::setMotionProfile(MotionProfile *profile)
 {
-    stepper->setAcceleration(profile->acceleration * stepsPerUnitTravel);
-    stepper->setSpeedInHz(profile->velocity * stepsPerUnitTravel);
+    stepper->setAcceleration(profile->acceleration);
+    stepper->setSpeedInHz(profile->velocity);
     driver->SGTHRS(profile->stallThreshold);
     driver->TCOOLTHRS(profile->velocityThreshold);
 }
@@ -163,8 +160,8 @@ void Actuator::loop()
         break;
     case HOMING_STALLED:
         stepper->forceStopAndNewPosition(0);
-        minPosStep = stepper->getCurrentPosition();
-        maxPosStep = minPosStep + totalTravelSteps;
+        minPos = stepper->getCurrentPosition();
+        maxPos = minPos + totalTravel;
 
         homed = true;
         state = STOPPED;
@@ -185,18 +182,18 @@ void Actuator::loop()
         {
             state = MOVING_STALLED;
         }
-        else if (!homed || stepper->getCurrentPosition() == targetPosStep)
+        else if (!homed || stepper->getCurrentPosition() == targetPos)
         {
             state = STOPPED;
         }
         else if (!stepper->isRunning())
         {
-            int delta = targetPosStep - stepper->getCurrentPosition();
+            int delta = targetPos - stepper->getCurrentPosition();
             MotionProfile *profile =
                 delta > 0 ? runningPositiveProfile : runningNegativeProfile;
             setMotionProfile(profile);
             stepper->enableOutputs();
-            stepper->moveTo(targetPosStep);
+            stepper->moveTo(targetPos);
         }
         break;
     case MOVING_STALLED:
@@ -215,20 +212,18 @@ bool Actuator::moveTo(int32_t position)
 {
     if (!homed)
         return false;
-    int positionStep = position * stepsPerUnitTravel;
-    if (positionStep > maxPosStep)
-        positionStep = maxPosStep;
-    else if (positionStep < minPosStep)
-        positionStep = minPosStep;
-    targetPosStep = positionStep;
+    if (position > maxPos)
+        position = maxPos;
+    else if (position < minPos)
+        position = minPos;
+    targetPos = position;
     this->state = MOVING;
     return true;
 }
 
 bool Actuator::move(int32_t delta)
 {
-    int32_t deltaStep = delta * stepsPerUnitTravel;
-    return moveTo(deltaStep + targetPosStep);
+    return moveTo(delta + targetPos);
 }
 
 void Actuator::stop()

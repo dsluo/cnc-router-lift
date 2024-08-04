@@ -38,7 +38,6 @@ Actuator actuator(
     DIRECTION_PIN,
     ENABLE_PIN,
     STALL_PIN,
-    STEPS_PER_UNIT_TRAVEL,
     &runningPositiveProfile,
     &runningNegativeProfile,
     &homingProfile,

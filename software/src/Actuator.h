@@ -49,20 +49,19 @@ class Actuator
     FastAccelStepperEngine engine;
 
     int stallPin;
-    uint32_t stepsPerUnitTravel;
 
     MotionProfile *runningPositiveProfile;
     MotionProfile *runningNegativeProfile;
 
     // Direction homingDirection;
     MotionProfile *homingProfile;
-    uint32_t totalTravelSteps;
+    uint32_t totalTravel;
 
     // =====================================
     bool homed = false;
-    int32_t minPosStep = INT_MIN;
-    int32_t maxPosStep = INT_MAX;
-    int32_t targetPosStep = 0;
+    int32_t minPos = INT_MIN;
+    int32_t maxPos = INT_MAX;
+    int32_t targetPos = 0;
     // todo: maybe volatile because core 0 handles the interrupt, while core 1 handles response?
     volatile bool stalled = false;
     State state;
@@ -87,7 +86,6 @@ public:
         uint8_t directionPin,
         uint8_t enablePin,
         int stallPin,
-        uint32_t stepsPerUnitTravel,
         MotionProfile *runningPositiveProfile,
         MotionProfile *runningNegativeProfile,
         // Direction homingDirection,
