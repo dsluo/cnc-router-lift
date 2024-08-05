@@ -22,8 +22,19 @@ enum State
     MOVING_STALLED
 };
 
+const char STATE_NAMES[8][16] = {
+    "DISABLED",
+    "HOMING_INIT",
+    "HOMING_MOVING",
+    "HOMING_STALLED",
+    "STOPPED",
+    "FORCE_STOPPED",
+    "MOVING",
+    "MOVING_STALLED"};
+
 struct MotionProfile
 {
+    String displayName;
     int acceleration;
     int velocity;
     // if driver.SG_RESULT() falls below twice this value, stallguard is triggered.
@@ -40,6 +51,7 @@ class Actuator
     HardwareSerial *driverSerial;
     float driverSenseResistance;
     uint8_t driverAddress;
+    TMC2209Stepper *driver;
 
     uint16_t rmsCurrent;
     uint16_t microsteps;
@@ -48,11 +60,14 @@ class Actuator
     uint8_t enablePin;
     uint8_t stallPin;
     FastAccelStepperEngine engine;
+    FastAccelStepper *stepper;
 
     // Direction homingDirection;
     uint32_t totalTravel;
 
     // =====================================
+    MotionProfile *activeProfile;
+
     bool homed = false;
     int32_t minPos = INT_MIN;
     int32_t maxPos = INT_MAX;
@@ -68,9 +83,6 @@ class Actuator
     void setMotionProfile(MotionProfile *parameters);
 
 public:
-    TMC2209Stepper *driver;
-    FastAccelStepper *stepper;
-
     MotionProfile *runningPositiveProfile;
     MotionProfile *runningNegativeProfile;
     MotionProfile *homingProfile;
@@ -93,9 +105,20 @@ public:
     ~Actuator();
     void begin();
 
-    std::optional<int32_t> getMin();
-    std::optional<int32_t> getMax();
-    std::optional<int32_t> getCurrentPosition();
+    uint32_t getDriverVelocity();
+    uint16_t getDriverStallValue();
+
+    State getState();
+    MotionProfile *getActiveProfile();
+
+    bool isHomed();
+    int32_t getMin();
+    int32_t getMax();
+    int32_t getCurrentPosition();
+    int32_t getTargetPosition();
+    int32_t getVelocity();
+    int32_t getAcceleration();
+
     bool setZero();
     bool setCurrentPosition(int32_t position);
 
@@ -104,6 +127,7 @@ public:
     bool move(int32_t delta);
     void stop();
     void forceStop();
+    void disable();
 };
 
 #endif

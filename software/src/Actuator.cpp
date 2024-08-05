@@ -78,11 +78,6 @@ void Actuator::begin()
         1);
 }
 
-void IRAM_ATTR Actuator::setStalled(void *instance)
-{
-    ((Actuator *)instance)->stalled = true;
-}
-
 void Actuator::startTask(void *instance)
 {
     while (true)
@@ -91,54 +86,9 @@ void Actuator::startTask(void *instance)
     }
 }
 
-std::optional<int32_t> Actuator::getMin()
-{
-    if (!homed)
-        return {};
-    return minPos;
-}
-
-std::optional<int32_t> Actuator::getMax()
-{
-    if (!homed)
-        return {};
-    return maxPos;
-}
-
-std::optional<int32_t> Actuator::getCurrentPosition()
-{
-    if (!homed)
-        return {};
-    return stepper->getCurrentPosition();
-}
-
-bool Actuator::setZero()
-{
-    return setCurrentPosition(0);
-}
-
-bool Actuator::setCurrentPosition(int32_t position)
-{
-    if (!homed)
-        return false;
-    int delta = stepper->getCurrentPosition() - position;
-    minPos += delta;
-    maxPos += delta;
-    stepper->setCurrentPosition(position);
-    targetPos = position;
-    return true;
-}
-
-void Actuator::setMotionProfile(MotionProfile *profile)
-{
-    stepper->setAcceleration(profile->acceleration);
-    stepper->setSpeedInHz(profile->velocity);
-    driver->SGTHRS(profile->stallThreshold);
-    driver->TCOOLTHRS(profile->velocityThreshold);
-}
-
 void Actuator::loop()
 {
+    setMotionProfile(activeProfile);
     switch (this->state)
     {
     case DISABLED:
@@ -147,7 +97,7 @@ void Actuator::loop()
         stalled = false;
         break;
     case HOMING_INIT:
-        setMotionProfile(homingProfile);
+        activeProfile = homingProfile;
         stepper->enableOutputs();
         stepper->moveTo(INT_MIN);
         state = HOMING_MOVING;
@@ -189,9 +139,8 @@ void Actuator::loop()
         else if (!stepper->isRunning())
         {
             int delta = targetPos - stepper->getCurrentPosition();
-            MotionProfile *profile =
+            activeProfile =
                 delta > 0 ? runningPositiveProfile : runningNegativeProfile;
-            setMotionProfile(profile);
             stepper->enableOutputs();
             stepper->moveTo(targetPos);
         }
@@ -200,6 +149,96 @@ void Actuator::loop()
         homed = false;
         state = STOPPED;
         break;
+    }
+}
+
+uint32_t Actuator::getDriverVelocity()
+{
+    return driver->TSTEP();
+}
+
+uint16_t Actuator::getDriverStallValue()
+{
+    return driver->SG_RESULT();
+}
+
+State Actuator::getState()
+{
+    return state;
+}
+
+MotionProfile *Actuator::getActiveProfile()
+{
+    return activeProfile;
+}
+
+bool Actuator::isHomed()
+{
+    return homed;
+}
+
+int32_t Actuator::getMin()
+{
+    return minPos;
+}
+
+int32_t Actuator::getMax()
+{
+    return maxPos;
+}
+
+int32_t Actuator::getCurrentPosition()
+{
+    return stepper->getCurrentPosition();
+}
+
+int32_t Actuator::getTargetPosition()
+{
+    return targetPos;
+}
+
+int32_t Actuator::getVelocity()
+{
+    // why is getCurrentSpeedInHz() not a thing?
+    // return stepper->getSpeedInMilliHz() * 1000;
+    return stepper->getCurrentSpeedInMilliHz() * 1000;
+}
+
+int32_t Actuator::getAcceleration()
+{
+    return stepper->getCurrentAcceleration();
+}
+
+void IRAM_ATTR Actuator::setStalled(void *instance)
+{
+    ((Actuator *)instance)->stalled = true;
+}
+
+bool Actuator::setZero()
+{
+    return setCurrentPosition(0);
+}
+
+bool Actuator::setCurrentPosition(int32_t position)
+{
+    if (!homed)
+        return false;
+    int delta = stepper->getCurrentPosition() - position;
+    minPos += delta;
+    maxPos += delta;
+    stepper->setCurrentPosition(position);
+    targetPos = position;
+    return true;
+}
+
+void Actuator::setMotionProfile(MotionProfile *profile)
+{
+    if (profile)
+    {
+        stepper->setAcceleration(profile->acceleration);
+        stepper->setSpeedInHz(profile->velocity);
+        driver->SGTHRS(profile->stallThreshold);
+        driver->TCOOLTHRS(profile->velocityThreshold);
     }
 }
 
@@ -234,4 +273,9 @@ void Actuator::stop()
 void Actuator::forceStop()
 {
     this->state = FORCE_STOPPED;
+}
+
+void Actuator::disable()
+{
+    this->state = DISABLED;
 }

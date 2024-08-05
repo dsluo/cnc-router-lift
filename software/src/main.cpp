@@ -24,10 +24,9 @@
 
 #define RMS_CURRENT 600
 
-MotionProfile runningPositiveProfile = MotionProfile{
-    10000, 1000, 100, 250};
-MotionProfile runningNegativeProfile = {10000, 1000, 100, 250};
-MotionProfile homingProfile = MotionProfile{10000, 1000, 100, 250};
+MotionProfile runningPositiveProfile = MotionProfile{String("Running Positive"), 10000, 1000, 100, 250};
+MotionProfile runningNegativeProfile = {String("Running Negative"), 10000, 1000, 100, 250};
+MotionProfile homingProfile = MotionProfile{String("Homing"), 10000, 1000, 100, 250};
 
 Actuator actuator(
     &DRIVER_SERIAL,
