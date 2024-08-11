@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <TMCStepper.h>
 #include <FastAccelStepper.h>
-// i miss rust.
-#include <optional>
 
 #ifndef ACTUATOR_H
 #define ACTUATOR_H
@@ -22,7 +20,7 @@ enum State
     MOVING_STALLED
 };
 
-const char STATE_NAMES[8][16] = {
+char const STATE_NAMES[8][16] = {
     "DISABLED",
     "HOMING_INIT",
     "HOMING_MOVING",
@@ -34,7 +32,9 @@ const char STATE_NAMES[8][16] = {
 
 struct MotionProfile
 {
-    String displayName;
+
+    char const *const name;
+    char const *const displayName;
     int acceleration;
     int velocity;
     // if driver.SG_RESULT() falls below twice this value, stallguard is triggered.
@@ -83,10 +83,6 @@ class Actuator
     void setMotionProfile(MotionProfile *parameters);
 
 public:
-    MotionProfile *runningPositiveProfile;
-    MotionProfile *runningNegativeProfile;
-    MotionProfile *homingProfile;
-
     Actuator(
         HardwareSerial *driverSerial,
         float driverSenseResistance,
@@ -97,10 +93,9 @@ public:
         uint8_t directionPin,
         uint8_t enablePin,
         uint8_t stallPin,
-        MotionProfile *runningPositiveProfile,
-        MotionProfile *runningNegativeProfile,
-        // Direction homingDirection,
-        MotionProfile *homingProfile,
+        MotionProfile *const runningPositiveProfile,
+        MotionProfile *const runningNegativeProfile,
+        MotionProfile *const homingProfile,
         uint32_t totalTravel);
     ~Actuator();
     void begin();
@@ -110,6 +105,10 @@ public:
 
     State getState();
     MotionProfile *getActiveProfile();
+    MotionProfile *const runningPositiveProfile;
+    MotionProfile *const runningNegativeProfile;
+    MotionProfile *const homingProfile;
+    MotionProfile *const allProfiles[3];
 
     bool isHomed();
     int32_t getMin();

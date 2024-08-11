@@ -10,10 +10,9 @@ Actuator::Actuator(
     uint8_t directionPin,
     uint8_t enablePin,
     uint8_t stallPin,
-    MotionProfile *runningPositiveProfile,
-    MotionProfile *runningNegativeProfile,
-    // Direction homingDirection,
-    MotionProfile *homingProfile,
+    MotionProfile *const runningPositiveProfile,
+    MotionProfile *const runningNegativeProfile,
+    MotionProfile *const homingProfile,
     uint32_t totalTravel)
     : driverSerial(driverSerial),
       driverSenseResistance(driverSenseResistance),
@@ -26,8 +25,8 @@ Actuator::Actuator(
       stallPin(stallPin),
       runningPositiveProfile(runningPositiveProfile),
       runningNegativeProfile(runningNegativeProfile),
-      //   homingDirection(homingDirection),
       homingProfile(homingProfile),
+      allProfiles{runningPositiveProfile, runningNegativeProfile, homingProfile},
       totalTravel(totalTravel)
 {
     driver = new TMC2209Stepper(driverSerial, driverSenseResistance, driverAddress);

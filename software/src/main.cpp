@@ -4,7 +4,7 @@
 #include <WiFi.h>
 
 #include "Actuator.h"
-#include "WebUI.h"
+#include "WebServer.h"
 
 #define ENABLE_PIN 14
 #define DIRECTION_PIN 27
@@ -24,9 +24,27 @@
 
 #define RMS_CURRENT 600
 
-MotionProfile runningPositiveProfile = MotionProfile{String("Running Positive"), 10000, 1000, 100, 250};
-MotionProfile runningNegativeProfile = {String("Running Negative"), 10000, 1000, 100, 250};
-MotionProfile homingProfile = MotionProfile{String("Homing"), 10000, 1000, 100, 250};
+MotionProfile runningPositiveProfile = {
+    "runningPositive",
+    "Running Positive",
+    10000,
+    1000,
+    100,
+    250};
+MotionProfile runningNegativeProfile = {
+    "runningNegative",
+    "Running Negative",
+    10000,
+    1000,
+    100,
+    250};
+MotionProfile homingProfile = {
+    "homing",
+    "Homing",
+    10000,
+    1000,
+    100,
+    250};
 
 Actuator actuator(
     &DRIVER_SERIAL,
@@ -43,7 +61,7 @@ Actuator actuator(
     &homingProfile,
     TOTAL_TRAVEL);
 
-WebUI webUI(&actuator);
+WebServer server(&actuator);
 
 void networkSetup()
 {
@@ -64,7 +82,7 @@ void setup()
   Serial.begin(115200);
   networkSetup();
   actuator.begin();
-  webUI.begin();
+  server.begin();
 }
 
 void loop()
