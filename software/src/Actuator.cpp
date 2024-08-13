@@ -50,12 +50,15 @@ void Actuator::begin()
 
     driverSerial->begin(115200);
     driver->begin();
+    driver->toff(4);
     // idk what this does
     driver->blank_time(24);
     driver->rms_current(rmsCurrent);
     driver->microsteps(microsteps);
     // disable coolstep; interferes with stallguard
     driver->semin(0);
+    driver->semax(2);
+    driver->sedn(0b01);
     // disable stealthchop by setting threshold above which its enabled to zero.
     driver->TPWMTHRS(0);
     // enable UART control
