@@ -153,12 +153,26 @@ void Actuator::loop()
 
 uint32_t Actuator::getDriverVelocity()
 {
-    return driver->TSTEP();
+    auto velocity = driver->TSTEP();
+    driverVelocity.add(velocity);
+    return velocity;
+}
+float Actuator::getMedianDriverVelocity()
+{
+    getDriverVelocity();
+    return driverVelocity.getMedian();
 }
 
 uint16_t Actuator::getDriverStallValue()
 {
-    return driver->SG_RESULT();
+    auto value = driver->SG_RESULT();
+    stallValue.add(value);
+    return value;
+}
+float Actuator::getMedianDriverStallValue()
+{
+    getDriverStallValue();
+    return stallValue.getMedian();
 }
 
 State Actuator::getState()

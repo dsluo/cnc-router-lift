@@ -131,7 +131,9 @@ void WebServer::broadcastState()
 void WebServer::compileState(JsonObject doc)
 {
   doc["driverVelocity"] = actuator->getDriverVelocity();
+  doc["medianDriverVelocity"] = actuator->getMedianDriverVelocity();
   doc["driverStallValue"] = actuator->getDriverStallValue();
+  doc["medianDriverStallValue"] = actuator->getMedianDriverStallValue();
   doc["state"] = STATE_NAMES[actuator->getState()];
   doc["isHomed"] = actuator->isHomed();
   doc["min"] = actuator->getMin();

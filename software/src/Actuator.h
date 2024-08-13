@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <TMCStepper.h>
 #include <FastAccelStepper.h>
+#include "RunningMedian.h"
 
 #ifndef ACTUATOR_H
 #define ACTUATOR_H
@@ -43,7 +44,7 @@ struct MotionProfile
     // velocity can be retrieved using driver.TSTEP()
     // this value is the amount of time between two microsteps,
     // thus smaller values are faster.
-    uint8_t velocityThreshold;
+    uint32_t velocityThreshold;
 };
 
 class Actuator
@@ -76,6 +77,9 @@ class Actuator
     volatile bool stalled = false;
     State state;
 
+    RunningMedian driverVelocity = RunningMedian(20);
+    RunningMedian stallValue = RunningMedian(20);
+
     static void IRAM_ATTR setStalled(void *instance);
     static void startTask(void *instance);
     void loop();
@@ -101,7 +105,9 @@ public:
     void begin();
 
     uint32_t getDriverVelocity();
+    float getMedianDriverVelocity();
     uint16_t getDriverStallValue();
+    float getMedianDriverStallValue();
 
     State getState();
     MotionProfile *getActiveProfile();
