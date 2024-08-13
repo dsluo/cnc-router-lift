@@ -78,6 +78,49 @@ esp_err_t WebServer::handleFrame(PsychicWebSocketRequest *request, httpd_ws_fram
   {
     compileState(responseDoc["state"].to<JsonObject>());
   }
+  else if (strcmp(action, "setProfileParameter") == 0)
+  {
+    success = false;
+    if (requestDoc.containsKey("profile"))
+    {
+      auto profileDoc = requestDoc["profile"];
+      if (profileDoc.containsKey("name"))
+      {
+        const char *profileName = profileDoc["name"];
+        MotionProfile *profile;
+        if (strcmp(profileName, "runningPositive") == 0)
+          profile = actuator->runningPositiveProfile;
+        else if (strcmp(profileName, "runningNegative") == 0)
+          profile = actuator->runningNegativeProfile;
+        else if (strcmp(profileName, "homing") == 0)
+          profile = actuator->homingProfile;
+
+        if (profile)
+        {
+          if (profileDoc.containsKey("acceleration"))
+          {
+            profile->acceleration = profileDoc["acceleration"];
+            success = true;
+          }
+          if (profileDoc.containsKey("velocity"))
+          {
+            profile->velocity = profileDoc["velocity"];
+            success = true;
+          }
+          if (profileDoc.containsKey("stallThreshold"))
+          {
+            profile->stallThreshold = profileDoc["stallThreshold"];
+            success = true;
+          }
+          if (profileDoc.containsKey("velocityThreshold"))
+          {
+            profile->velocityThreshold = profileDoc["velocityThreshold"];
+            success = true;
+          }
+        }
+      }
+    }
+  }
   else
     success = false;
 
