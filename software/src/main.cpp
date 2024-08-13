@@ -18,9 +18,14 @@
 // 200 steps / rev
 // 64 microsteps / step
 // 4 starts * 2 mm pitch / rev
-#define MICROSTEPS 64
-#define STEPS_PER_UNIT_TRAVEL MICROSTEPS * 200 / (4 * 2)
-#define TOTAL_TRAVEL 200
+// 200 mm
+#define STEPS_PER_REV 200
+#define MICROSTEPS_PER_STEP 64
+#define THREAD_PITCH_MM_PER_REV 2
+#define THREAD_STARTS 4
+#define TOTAL_TRAVEL_MM 200
+#define TOTAL_TRAVEL_STEPS \
+  TOTAL_TRAVEL_MM / (THREAD_STARTS * THREAD_PITCH_MM_PER_REV) * STEPS_PER_REV * MICROSTEPS_PER_STEP
 
 #define RMS_CURRENT 600
 
@@ -51,7 +56,7 @@ Actuator actuator(
     DRIVER_RESIST,
     DRIVER_ADDRESS,
     RMS_CURRENT,
-    MICROSTEPS,
+    MICROSTEPS_PER_STEP,
     STEP_PIN,
     DIRECTION_PIN,
     ENABLE_PIN,
