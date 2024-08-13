@@ -13,7 +13,9 @@ Actuator::Actuator(
     MotionProfile *const runningPositiveProfile,
     MotionProfile *const runningNegativeProfile,
     MotionProfile *const homingProfile,
-    uint32_t totalTravel)
+    Direction homingDirection,
+    uint32_t totalTravel,
+    bool reverse)
     : driverSerial(driverSerial),
       driverSenseResistance(driverSenseResistance),
       driverAddress(driverAddress),
@@ -27,7 +29,9 @@ Actuator::Actuator(
       runningNegativeProfile(runningNegativeProfile),
       homingProfile(homingProfile),
       allProfiles{runningPositiveProfile, runningNegativeProfile, homingProfile},
-      totalTravel(totalTravel)
+      homingDirection(homingDirection),
+      totalTravel(totalTravel),
+      reverse(reverse)
 {
     driver = new TMC2209Stepper(driverSerial, driverSenseResistance, driverAddress);
 }
@@ -98,7 +102,7 @@ void Actuator::loop()
     case HOMING_INIT:
         activeProfile = homingProfile;
         stepper->enableOutputs();
-        stepper->moveTo(INT_MIN);
+        stepper->moveTo(homingDirection == POSITIVE ? INT_MAX : INT_MIN);
         state = HOMING_MOVING;
         break;
     case HOMING_MOVING:
@@ -109,8 +113,14 @@ void Actuator::loop()
         break;
     case HOMING_STALLED:
         stepper->forceStopAndNewPosition(0);
-        minPos = stepper->getCurrentPosition();
-        maxPos = minPos + totalTravel;
+        if (homingDirection == POSITIVE)
+        {
+            maxPos = stepper->getCurrentPosition();
+            minPos = maxPos - totalTravel;
+        } else {
+            minPos = stepper->getCurrentPosition();
+            maxPos = minPos + totalTravel;
+        }
 
         homed = true;
         state = STOPPED;

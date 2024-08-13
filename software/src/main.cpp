@@ -59,7 +59,9 @@ Actuator actuator(
     &runningPositiveProfile,
     &runningNegativeProfile,
     &homingProfile,
-    TOTAL_TRAVEL);
+    Direction::NEGATIVE,
+    TOTAL_TRAVEL_STEPS,
+    false);
 
 WebServer server(&actuator);
 

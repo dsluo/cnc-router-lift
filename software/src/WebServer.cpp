@@ -142,6 +142,7 @@ void WebServer::compileState(JsonObject doc)
   doc["targetPosition"] = actuator->getTargetPosition();
   doc["velocity"] = actuator->getVelocity();
   doc["acceleration"] = actuator->getAcceleration();
+  doc["homingDirection"] = DIRECTION_NAMES[actuator->homingDirection];
   JsonObject profilesObj = doc["profiles"].to<JsonObject>();
 
   auto activeProfile = actuator->getActiveProfile();

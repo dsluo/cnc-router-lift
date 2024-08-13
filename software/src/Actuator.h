@@ -31,6 +31,16 @@ char const STATE_NAMES[8][16] = {
     "MOVING",
     "MOVING_STALLED"};
 
+enum Direction
+{
+    POSITIVE,
+    NEGATIVE
+};
+
+char const DIRECTION_NAMES[2][9] = {
+    "POSITIVE",
+    "NEGATIVE"};
+
 struct MotionProfile
 {
 
@@ -100,7 +110,9 @@ public:
         MotionProfile *const runningPositiveProfile,
         MotionProfile *const runningNegativeProfile,
         MotionProfile *const homingProfile,
-        uint32_t totalTravel);
+        Direction homingDirection,
+        uint32_t totalTravel,
+        bool reverse = false);
     ~Actuator();
     void begin();
 
@@ -115,6 +127,9 @@ public:
     MotionProfile *const runningNegativeProfile;
     MotionProfile *const homingProfile;
     MotionProfile *const allProfiles[3];
+
+    bool reverse;
+    Direction homingDirection = NEGATIVE;
 
     bool isHomed();
     int32_t getMin();
