@@ -73,7 +73,7 @@ WebServer server(&actuator);
 void networkSetup()
 {
   WiFi.setHostname("router-lift");
-  WiFi.begin("ssid", "password");
+  WiFi.begin("hello world", "fearlessoctopus593");
 
   do
   {
