@@ -189,18 +189,7 @@ void WebServer::compileState(JsonObject doc)
   JsonObject profilesObj = doc["profiles"].to<JsonObject>();
 
   auto activeProfile = actuator->getActiveProfile();
-  if (activeProfile)
-  {
-    JsonObject activeProfileDoc = profilesObj["active"].to<JsonObject>();
-    activeProfileDoc["velocity"] = activeProfile->velocity;
-    activeProfileDoc["acceleration"] = activeProfile->acceleration;
-    activeProfileDoc["velocityThreshold"] = activeProfile->velocityThreshold;
-    activeProfileDoc["stallThreshold"] = activeProfile->stallThreshold;
-  }
-  else
-  {
-    profilesObj["active"] = nullptr;
-  }
+  profilesObj["active"] = activeProfile ? activeProfile->name : nullptr;
 
   for (auto profile : actuator->allProfiles)
   {
